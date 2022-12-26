@@ -6,7 +6,7 @@ const getAllProductsStatic = async(req,res)=>{
 }
 
 const getAllProducts = async(req,res)=>{
-    const {featured,company,name,rating,price,sort} = req.query
+    const {featured,company,name,rating,price,sort,fields} = req.query
     const reqObject = {}
 
     if(featured){
@@ -38,7 +38,17 @@ const getAllProducts = async(req,res)=>{
     else{
         result=result.sort('createdAt')
     }
-    const products = await result
+    
+    if(fields){
+        let fieldList = fields.split(',').join(' ')
+        result=result.select(fieldList)
+    }
+
+    const page = Number(req.query.page) || 1
+    const limit = Number(req.query.limit) || 10
+    const skip = (page -1)*limit
+
+    const products = await result.skip(skip).limit(limit)
 
     res.status(200).send({products,nbHits:products.length})
 }
